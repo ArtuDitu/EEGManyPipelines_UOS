@@ -2,68 +2,54 @@
 
 %% STEP ONE: Load data + Filtering (high-low), Resampling
 
+% add paths and create a folder
 cd D:\Dropbox\Projects\EEGManyPipelines % change directory
 addpath(genpath('D:\Dropbox\Projects\EEGManyPipelines')) % add directory with all subfolders to the path
-
 eeglabpath = fileparts(which('eeglab.m')); % create variable storing a path to eeglab toolbox
 
 %EEG = pop_loadset(); % load data: select data from your disk
 EEG = pop_loadset('filename', 'EMP01.set', 'filepath','D:\Dropbox\Projects\EEGManyPipelines\eeg_eeglab' ); % load data: specify file names. This can be further improved with sprintf() to loop over different files
 
-%create a target folder
-mkdir(fullfile(filepath,'preprocessed'))
+% parameters
+low_pass = 100;
+high_pass = .1;
+power_line = 50;
+srate = EEG.srate;
 
-EEG.preprocessing = [];
+EEG.preprocessing = []; % add field to keep track of changes
 
 %%% DOWNSAMPLING %%%
-EEG = pop_resample(EEG, 512);
-EEG.preprocessing = [EEG.preprocessing 'Resampled,'];
+%EEG = pop_resample(EEG, 512);
+%EEG.preprocessing = [EEG.preprocessing 'Resampled,'];
+
+%pop_spectopo(EEG)
 
 %%% HighPass FILTER %%%
-EEG = pop_eegfiltnew(EEG, 0.1, []);   % highpass  
+EEG = pop_eegfiltnew(EEG, high_pass, []);   % highpass
 EEG.preprocessing = [EEG.preprocessing 'Highpass,'];
-               
+
 %%% LowPass FILTER %%%
-EEG = pop_eegfiltnew(EEG, [], 120);   % lowpass
+EEG = pop_eegfiltnew(EEG, [], low_pass);   % lowpass
 EEG.preprocessing = [EEG.preprocessing 'Lowpass,'];
 
-% look up location of channels and change location of VEOG from right to
-% left
-EEG=pop_chanedit(EEG, 'lookup',fullfile(eeglabpath,'plugins/dipfit2.3/standard_BESA/standard-10-5-cap385.elp'));
-EEG.chanlocs(65).theta = -27;
-pop_spectopo(EEG) % pwelsh?
-%pwelch(acz_EEG.data(1,:))
+%pop_spectopo(EEG)
 
-%%% reduce line noise in the data (note: may not completely eliminate, re-referencing helps at the end as well)
-EEG = pop_cleanline(EEG, 'bandwidth',2,'chanlist',1:EEG.nbchan,'computepower',1,'linefreqs',[50 100] ,'normSpectrum',0,'p',0.01,'pad',2,'plotfigures',0,'scanforlines',1,'sigtype','Channels','tau',100,'verb',0,'winsize',4,'winstep',1, 'ComputeSpectralPower','False');
-EEG = eeg_checkset( EEG );
-EEG.preprocessing = [EEG.preprocessing 'Cleanlined,'];
+% remove line noise with zapline 
+d_tmp = permute(EEG.data, [2,1]);
+d_tmp = nt_zapline(d_tmp, power_line/srate);
+EEG.data = permute(d_tmp,[2,1]);
+EEG.preprocessing = [EEG.preprocessing 'Zaplined,'];
+
+%pop_spectopo(EEG)
+
+% referenca data to average
+EEG = pop_reref( EEG, []);
 
 % saving the new dataset
-EEG = pop_editset(EEG, 'setname', sprintf('2_%s_bandpass_resample_deblank',setname));
-EEG = pop_saveset(EEG, 'filename',sprintf('2_%s_bandpass_resample_deblank',setname),'filepath',fullfile(filepath,'preprocessed'));
+%EEG = pop_editset(EEG, 'setname', sprintf('Step1_%s',EEG.setname));
+%EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath,'preprocessed'));
 
 %% STEP TWO: Selecting channels 
-%loading new dataset
-if ~exist('acz_EEG','var')
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('2_%s_bandpass_resample_deblank.set',setname),fullfile(filepath,'preprocessed'));
-elseif isempty(~strfind(EEG.preprocessing,'Resampled,Highpass,Lowpass,Cleanlined,Deblanked,'))
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('2_%s_bandpass_resample_deblank.set',setname),fullfile(filepath,'preprocessed'));
-end
-
-%deleting unused channels for I amplifier 
-EEG = pop_select(EEG, 'nochannel', {'BIP2' 'BIP3' 'BIP4' 'AUX1' 'AUX2' 'AUX3' 'AUX4'}); % measurements with one amplifier
-
-
-%renaming BIP1
-EEG.chanlocs(65).labels = 'VEOG'; % for I amplifier
-
-% look up location of channels and change location of VEOG from right to
-% left
-EEG=pop_chanedit(EEG, 'lookup',fullfile(eeglabpath,'plugins/dipfit2.3/standard_BESA/standard-10-5-cap385.elp'));
-EEG.chanlocs(65).theta = -27;
 
 % save to use later before interpolation
 full_channels_locs = EEG.chanlocs;
