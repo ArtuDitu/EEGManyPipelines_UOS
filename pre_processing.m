@@ -88,24 +88,16 @@ EEG = eeg_checkset(EEG,'makeur');
 EEG = pop_editset(EEG, 'setname', sprintf('Step3_%s',EEG.setname(7:end)));
 EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath));
 %% STEP FOUR: ICA (o.o)
-%load files
-if ~exist('acz_EEG','var')
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('4_%s_Clean.set',setname),fullfile(filepath,'preprocessed'));
-elseif isempty(~strfind(EEG.preprocessing,'Resampled,Highpass,Lowpass,Cleanlined,Deblanked,ChannelReject,Cleaning,'))
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('4_%s_Clean.set',setname),fullfile(filepath,'preprocessed'));
-end
 
-
-%%% HighPass FILTER %%%
-EEG = pop_eegfiltnew(EEG, 2, []);   % highpass  
+%%% HighPass FILTER %%% tmp variable
+EEG_tmp = pop_eegfiltnew(EEG, 2, []);   % highpass  
 
 % addpath('./amica')
-mkdir(fullfile(filepath,'preprocessed','amica'))
-                
-outDir = fullfile(filepath,'preprocessed','amica');
-runamica12(EEG.data,'outdir',outDir,'use_queue','nbp.q','qsubname',['ica_VP' num2str(sub)]);
+mkdir(fullfile(EEG.filepath,EEG.setname(7:end),'amica'))
+
+% run amica ICA
+outDir = fullfile(fullfile(EEG.filepath,EEG.setname(7:end),'amica'));
+runamica15(EEG_tmp.data,'outdir',outDir);
 %% STEP FIVE: Apply ICA wights and Component cleaning
 %load data
 if ~exist('acz_EEG','var')
