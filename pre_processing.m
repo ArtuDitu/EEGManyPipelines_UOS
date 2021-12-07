@@ -47,7 +47,7 @@ EEG = pop_reref( EEG, []);
 
 % saving the new dataset
 %EEG = pop_editset(EEG, 'setname', sprintf('Step1_%s',EEG.setname));
-%EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath,'preprocessed'));
+%EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath));
 
 %% STEP TWO: Selecting channels 
 
@@ -73,18 +73,20 @@ end
 %% STEP THREE: Data Cleaning
 
 eegplot(EEG.data,'command','rej=TMPREJ;','srate',EEG.srate,'eloc_file',EEG.chanlocs,'events',EEG.event);
+%save cleaning file
+save([EEG.filepath,sprintf('\\%s_cleaningTimes.mat', EEG.setname(7:end))],'tmprej','rej');
 
 %converts rejections into events
 tmprej = eegplot2event(rej, -1);
 EEG = eeg_eegrej(EEG,tmprej(:,[3 4]));
+EEG.preprocessing = [EEG.preprocessing 'Cleaning,'];
 
+% eeg check function after cleaning
 EEG = eeg_checkset(EEG,'makeur');
 
 %save file
-save([filepath,sprintf('4_%s_cleaningTimes.mat',setname)],'tmprej','rej');
-EEG.preprocessing = [EEG.preprocessing 'Cleaning,'];
-EEG = pop_editset(EEG, 'setname', sprintf('4_%s_Clean',setname));
-EEG = pop_saveset(EEG, 'filename',sprintf('4_%s_Clean',setname),'filepath',fullfile(filepath,'preprocessed'));
+EEG = pop_editset(EEG, 'setname', sprintf('Step3_%s',EEG.setname(7:end)));
+EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath));
 %% STEP FOUR: ICA (o.o)
 %load files
 if ~exist('acz_EEG','var')
