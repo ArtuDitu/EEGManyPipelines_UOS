@@ -51,52 +51,28 @@ EEG = pop_reref( EEG, []);
 
 %% STEP TWO: Selecting channels 
 
-% save to use later before interpolation
-full_channels_locs = EEG.chanlocs;
-save([filepath sprintf('65_channels.mat',setname)], 'full_channels_locs')
+% plot data to scroll and find noisy channels
+eegplot(EEG.data,'srate',EEG.srate,'eloc_file',EEG.chanlocs,'events',EEG.event)
 
-
-
-if exist(fullfile(filepath,sprintf('3_%s_channels_to_reject.mat',setname)))
-    tmp_channels_to_reject = load(fullfile(filepath,sprintf('3_%s_channels_to_reject.mat',setname)));
-    channels_to_reject = tmp_channels_to_reject.channels_to_reject;
-else
-    %plotting data scroll to visually detect noisy channels
-    eegplot(EEG.data,'srate',EEG.srate,'eloc_file',EEG.chanlocs,'events',EEG.event)
-    channels_to_reject = {'CPz'};
-end
-
+% here you enter names of channels to reject
+channels_to_reject = {'T8' 'T7'};
 
 %deleting noisy channels
 EEG = pop_select(EEG, 'nochannel', channels_to_reject);
+EEG.preprocessing = [EEG.preprocessing 'ChannelReject,'];
+save([EEG.filepath sprintf('\\%s_channels_to_reject.mat',EEG.setname(7:end))], 'channels_to_reject')
 
-
-if EEG.nbchan ~= 65
+% rereference after removing noisy channels
+if EEG.nbchan ~= 72
     EEG = pop_reref( EEG, []); %Participants’ averages were then re-referenced to a common average reference. (Rossion & Caharel, 2011)
 end
 
 %save file
-EEG.preprocessing = [EEG.preprocessing 'ChannelReject,'];
-EEG = pop_editset(EEG, 'setname', sprintf('3_%s_channelrej',setname));
-EEG = pop_saveset(EEG, 'filename',sprintf('3_%s_channelrej',setname),'filepath',fullfile(filepath,'preprocessed'));
-save([filepath sprintf('3_%s_channels_to_reject.mat',setname)], 'channels_to_reject')
+%EEG = pop_editset(EEG, 'setname', sprintf('Step2_%s',EEG.setname(7:end)));
+%EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath,'preprocessed'));
 %% STEP THREE: Data Cleaning
-%load files
-if ~exist('acz_EEG','var')
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('3_%s_channelrej.set',setname),fullfile(filepath,'preprocessed'));
-elseif isempty(~strfind(EEG.preprocessing,'Resampled,Highpass,Lowpass,Cleanlined,Deblanked,ChannelReject,'))
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('3_%s_channelrej.set',setname),fullfile(filepath,'preprocessed'));
-end
 
-
-if exist (fullfile(filepath,sprintf('4_%s_cleaningTimes.mat',setname)))
-    load(fullfile(filepath,sprintf('4_%s_cleaningTimes.mat',setname)),'tmprej','rej');
-else
-    %plotting for visual inspection
-    eegplot(EEG.data,'command','rej=TMPREJ;','srate',EEG.srate,'eloc_file',EEG.chanlocs,'events',EEG.event);
-end
+eegplot(EEG.data,'command','rej=TMPREJ;','srate',EEG.srate,'eloc_file',EEG.chanlocs,'events',EEG.event);
 
 %converts rejections into events
 tmprej = eegplot2event(rej, -1);
