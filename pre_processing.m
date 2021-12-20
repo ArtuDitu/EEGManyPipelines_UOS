@@ -96,15 +96,23 @@ EEG_tmp = pop_eegfiltnew(EEG, 2, []);   % highpass
 mkdir(fullfile(EEG.filepath,EEG.setname(7:end),'amica'))
 
 % run amica ICA
-outDir = fullfile(fullfile(EEG.filepath,EEG.setname(7:end),'amica'));
-runamica15(EEG_tmp.data,'outdir',outDir);
+outDir = what('amica');
+dataRank = rank(double(EEG_tmp.data'));
+
+%outDir = fullfile(fullfile(EEG.filepath,EEG.setname(7:end),'amica'));
+
+runamica15(EEG_tmp.data, 'num_chans', EEG_tmp.nbchan,...
+            'outdir', outDir.path,...
+            'pcakeep', dataRank, 'num_models', 1,...
+            'do_reject', 1, 'numrej', 15, 'rejsig', 3, 'rejint', 1);
+
 %% STEP FIVE: Apply ICA wights and Component cleaning
 
 
 addpath([fullfile(EEG.filepath,EEG.setname(7:end),'amica')])
 
 %load ICA results
-icapath = fullfile(filepath,'preprocessed','amica');
+icapath = fullfile(EEG.filepath,'preprocessed','amica');
 
 mod = loadmodout15(icapath);
                 
