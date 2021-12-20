@@ -99,46 +99,26 @@ mkdir(fullfile(EEG.filepath,EEG.setname(7:end),'amica'))
 outDir = fullfile(fullfile(EEG.filepath,EEG.setname(7:end),'amica'));
 runamica15(EEG_tmp.data,'outdir',outDir);
 %% STEP FIVE: Apply ICA wights and Component cleaning
-%load data
-if ~exist('acz_EEG','var')
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('4_%s_Clean.set',setname),fullfile(filepath,'preprocessed'));
-elseif isempty(~strfind(EEG.preprocessing,'Resampled,Highpass,Lowpass,Cleanlined,Deblanked,ChannelReject,Cleaning,'))
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('4_%s_Clean.set',setname),fullfile(filepath,'preprocessed'));
-end
 
 
-addpath([fullfile(filepath,'preprocessed') '/amica'])
+addpath([fullfile(EEG.filepath,EEG.setname(7:end),'amica')])
 
 %load ICA results
 icapath = fullfile(filepath,'preprocessed','amica');
 
-mod = loadmodout12(icapath);
+mod = loadmodout15(icapath);
                 
 %apply ICA weights to data
 EEG.icasphere = mod.S;
 EEG.icaweights = mod.W;
-EEG = eeg_checkset(EEG);
 EEG.preprocessing = [EEG.preprocessing 'AMICA,'];
 
-acz_EEG_temp = EEG;
+% calculate iclabel classification
+EEG = iclabel(EEG);
 
-%EPOCH %%%
-window=[-0.2 1];
-[acz_EEG_temp indices] = pop_epoch( acz_EEG_temp, {4 5 6 7 11 12 13 14}, window, 'epochinfo', 'yes');
-acz_EEG_temp.orig_indices = indices;
-
-
-% remove baseline
-acz_EEG_temp = pop_rmbase( acz_EEG_temp, [-200 0]);
-
-acz_EEG_temp = pop_chanedit(acz_EEG_temp, 'lookup',fullfile(eeglabpath,'plugins/dipfit2.3/standard_BESA/standard-10-5-cap385.elp'));
-veog_channel = size(acz_EEG_temp.icachansind,2);
-acz_EEG_temp.chanlocs(veog_channel).theta = -27;
-
-EEG = acz_EEG_temp;
 pop_selectcomps(EEG);
+
+
 pop_eegplot(EEG,0,1,1);
                 
 %reject selected components
@@ -151,14 +131,6 @@ EEG = pop_editset(EEG, 'setname', sprintf('5_%s_ICAclean',setname));
 EEG = pop_saveset(EEG, 'filename',sprintf('5_%s_ICAclean',setname),'filepath',fullfile(filepath,'preprocessed'));
 save([filepath,sprintf('5_%s_ICA.mat',setname)],'comps_to_rej');
 %% STEP SIX: Re-reference & Interpolation
-%load files
-if ~exist('acz_EEG','var')
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('5_%s_ICAclean.set',setname),fullfile(filepath,'preprocessed'));
-elseif isempty(~strfind(EEG.preprocessing,'Resampled,Highpass,Lowpass,Cleanlined,Deblanked,ChannelReject,Cleaning,AMICA,ICACleaned,'))
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('5_%s_ICAclean.set',setname),fullfile(filepath,'preprocessed'));
-end
 
 load(fullfile(filepath,sprintf('65_channels.mat',setname)));
 
