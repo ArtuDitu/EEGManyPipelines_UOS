@@ -111,10 +111,14 @@ runamica15(EEG_tmp.data, 'num_chans', EEG_tmp.nbchan,...
 
 addpath([fullfile(EEG.filepath,EEG.setname(7:end),'amica')])
 
+
 %load ICA results
-icapath = fullfile(EEG.filepath,'preprocessed','amica');
+icapath = fullfile(outDir.path,'preprocessed','amica');
+outDir = what('amica');
 
 mod = loadmodout15(icapath);
+mod = loadmodout15(outDir.path);
+
                 
 %apply ICA weights to data
 EEG.icasphere = mod.S;
