@@ -112,6 +112,14 @@ runamica15(EEG_tmp.data, 'num_chans', EEG_tmp.nbchan,...
 
 %% STEP FIVE: Apply ICA wights and Component cleaning
 
+% add paths and create a folder
+%cd D:\Dropbox\Projects\EEGManyPipelines % change directory
+%addpath(genpath('D:\Dropbox\Projects\EEGManyPipelines')) % add directory with all subfolders to the path
+%eeglabpath = fileparts(which('eeglab.m')); % create variable storing a path to eeglab toolbox
+%eeglab;
+
+%EEG = pop_loadset(); % load data: select data from your disk
+
 
 addpath([fullfile(EEG.filepath,'amica')])
 
