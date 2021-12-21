@@ -115,7 +115,6 @@ runamica15(EEG_tmp.data, 'num_chans', EEG_tmp.nbchan,...
 
 addpath([fullfile(EEG.filepath,'amica')])
 
-
 %load ICA results
 outDir = what('amica');
 
@@ -147,98 +146,28 @@ pop_eegplot(EEG,0,1,1);
 %reject selected components
 comps_to_rej = find(EEG.reject.gcompreject);
 EEG = pop_subcomp( EEG, comps_to_rej, 0);
+EEG = eeg_checkset(EEG);
+EEG.preprocessing = [EEG.preprocessing 'ICACleaned,'];
 
 %save file
-EEG.preprocessing = [EEG.preprocessing 'ICACleaned,'];
-EEG = pop_editset(EEG, 'setname', sprintf('5_%s_ICAclean',setname));
-EEG = pop_saveset(EEG, 'filename',sprintf('5_%s_ICAclean',setname),'filepath',fullfile(filepath,'preprocessed'));
-save([filepath,sprintf('5_%s_ICA.mat',setname)],'comps_to_rej');
+EEG = pop_editset(EEG, 'setname', sprintf('Step4_%s',EEG.setname(7:end)));
+EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath));
+save([EEG.filepath,sprintf('\\ICA_%s.mat',EEG.setname)],'comps_to_rej');
+
 %% STEP SIX: Re-reference & Interpolation
 
-load(fullfile(filepath,sprintf('65_channels.mat',setname)));
-
-
-EEG = pop_reref( EEG, []); %Participants’ averages were then re-referenced to a common average reference. (Rossion & Caharel, 2011)
-EEG.preprocessing = [EEG.preprocessing 'Rereference,'];
+load('preprocessed_channels.mat');
 
 %interpolate missing channels
-EEG=pop_chanedit(EEG, 'lookup',fullfile(eeglabpath,'plugins/dipfit2.3/standard_BESA/standard-10-5-cap385.elp'));
 EEG= pop_interp(EEG, full_channels_locs,'spherical');
-
-
 EEG.preprocessing = [EEG.preprocessing 'channelInterpol'];
-EEG = pop_editset(EEG, 'setname', sprintf('6_%s_RerefInterp',setname));
-EEG = pop_saveset(EEG, 'filename',sprintf('6_%s_RerefInterp',setname),'filepath',fullfile(filepath,'preprocessed'));
 
-%% STEP SEVEN: epoching and recleaning
-%load data
-if ~exist('acz_EEG','var')
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('6_%s_RerefInterp.set',setname),fullfile(filepath,'preprocessed'));
-elseif isempty(~strfind(EEG.preprocessing,'Resampled,Highpass,Lowpass,Cleanlined,Deblanked,ChannelReject,Cleaning,AMICA,ICACleaned,Rereference,channelInterpol'))
-    [filepath filename setname eeglabpath sub] = acz_generate_paths();
-    EEG = pop_loadset(sprintf('6_%s_RerefInterp.set',setname),fullfile(filepath,'preprocessed'));
-end
-
-%EPOCH %%%
-window=[-0.2 1];
-[EEG indices] = pop_epoch( EEG, {4 5 6 7 11 12 13 14}, window, 'epochinfo', 'yes');
-EEG.orig_indices = indices;
-
-% % remove baseline
-EEG = pop_rmbase( EEG, [-200 0]);
-% 
-% % recleaning
-eegplot(EEG.data, 'command', 'rej_epoch=TMPREJ','srate',EEG.srate,'eloc_file',EEG.chanlocs, 'events',EEG.event);
-% 
-% %converts rejections into epoch
-tmprej_epoch = eegplot2trial(rej_epoch,EEG.pnts, EEG.trials);
-EEG = pop_rejepoch(EEG,tmprej_epoch);
-EEG = eeg_checkset(EEG,'makeur');
-
-EEG.preprocessing = [EEG.preprocessing 'EPOCHED'];
-EEG = pop_editset(EEG, 'setname', sprintf('7_%s_EPOCHED',setname));
-EEG = pop_saveset(EEG, 'filename', sprintf('7_%s_EPOCHED',setname),'filepath',fullfile(filepath,'preprocessed'));
-%% STEP EIGHT epoch and average (applied after all files are pre processed!!!!!
-x= [ 4 5 6 7 11 12 13 14];
-y = [400 403 404 405 406 408 410 413 416 417 418 419 420 422 424 425 426 427 428 432 433 434 435 436 437 439];
+%eegplot(EEG.data,'command','rej=TMPREJ;','srate',EEG.srate,'eloc_file',EEG.chanlocs,'events',EEG.event);
+%tmprej = eegplot2event(rej, -1);
+%EEG = eeg_eegrej(EEG,tmprej(:,[3 4]));
+%EEG = eeg_checkset(EEG,'makeur');
 
 
-for i=y
-    % open eeglab and load clean data set
-    [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
-    EEG = pop_loadset('filename',sprintf('7_%d_EPOCHED.set',i),'filepath',sprintf('/net/store/nbp/projects/joint_error/all/Data/study/EEG/sub%d/preprocessed/',i));
-    EEG=pop_chanedit(EEG, 'lookup','/net/store/nbp/projects/joint_error/all/eeglab14_1_1b/plugins/dipfit2.3/standard_BESA/standard-10-5-cap385.elp');
-    EEG = pop_select( EEG,'channel',{'VEOG' 'Fp1' 'Fpz' 'Fp2' 'F7' 'F3' 'Fz' 'F4' 'F8' 'FC5' 'FC1' 'FC2' 'FC6' 'M1' 'T7' 'C3' 'Cz' 'C4' 'T8' 'M2' 'CP5' 'CP1' 'CP2' 'CP6' 'P7' 'P3' 'Pz' 'P4' 'P8' 'POz' 'O1' 'Oz' 'O2' 'AF7' 'AF3' 'AF4' 'AF8' 'F5' 'F1' 'F2' 'F6' 'FC3' 'FCz' 'FC4' 'C5' 'C1' 'C2' 'C6' 'CP3' 'CPz' 'CP4' 'P5' 'P1' 'P2' 'P6' 'PO5' 'PO3' 'PO4' 'PO6' 'FT7' 'FT8' 'TP7' 'TP8' 'PO7' 'PO8'});
-    [ALLEEG, EEG, CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );
-    for k=x
-        EEG_epoch = pop_epoch( EEG, {  k  }, [-0.2 1], 'newname', sprintf('Tr_%d_%d_RerefInterp epochs',k,i), 'epochinfo', 'yes');
-        %[ALLEEG EEG_epoch CURRENTSET] = pop_newset(ALLEEG, EEG_epoch, 1,'savenew',sprintf('/net/store/nbp/projects/joint_error/all/Data/study/EEG/sub%d/Tr_%d_%d_new.set',i,k,i),'gui','off'); 
-        EEG_epoch = eeg_checkset( EEG_epoch );
-        [ALLEEG EEG_epoch CURRENTSET] = pop_newset(ALLEEG, EEG_epoch,11,'savenew',sprintf('/net/store/nbp/projects/joint_error/all/Data/study/EEG/sub%d/Tr_%d_%d.set',i,k,i),'gui','off');
-    end
-end
-
-for k=x
-     [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
-     for l=y
-     EEG = pop_loadset('filename',sprintf('Tr_%d_%d.set',k,l),'filepath',sprintf('/net/store/nbp/projects/joint_error/all/Data/study/EEG/sub%d',l));
-     EEG.avgdata = [];
-     EEG.sem = [];
-     EEG.sd = [];
-        for i = 1:size(EEG.data,1)
-            for j = 1:size(EEG.data,2)
-                EEG.avgdata(i,j) = mean(EEG.data(i,j,:));
-                EEG.sem(i,j) = (std(EEG.data(i,j,:))) ./ (sqrt(length(EEG.data(i,j,:))));
-                EEG.sd(i,j) = std(EEG.data(i,j,:));
-            end
-            
-        end
-     EEG.data = EEG.avgdata
-     EEG.trial_number = EEG.trials;
-     EEG = pop_editset(EEG, 'setname', sprintf('8_%d_%d_avg',k,l));
-     EEG = pop_saveset(EEG, 'filename',sprintf('8_%d_%d_avg',k,l),'filepath',sprintf('/net/store/nbp/projects/joint_error/all/Data/study/EEG/sub%d',l));
-     end
-end
-
-
+% save
+EEG = pop_editset(EEG, 'setname', sprintf('Step5_%s',EEG.setname(7:end)));
+EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath));
