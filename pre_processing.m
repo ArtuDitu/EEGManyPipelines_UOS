@@ -14,7 +14,6 @@ EEG = pop_loadset('filename', 'EMP01.set', 'filepath','D:\Dropbox\Projects\EEGMa
 low_pass = 100;
 high_pass = .1;
 power_line = 50;
-srate = EEG.srate;
 
 EEG.preprocessing = []; % add field to keep track of changes
 
@@ -35,9 +34,9 @@ EEG.preprocessing = [EEG.preprocessing 'Lowpass,'];
 %pop_spectopo(EEG)
 
 % remove line noise with zapline 
-d_tmp = permute(EEG.data, [2,1]);
-d_tmp = nt_zapline(d_tmp, power_line/srate);
-EEG.data = permute(d_tmp,[2,1]);
+d_tmp = permute(EEG.data, [2,1]); % change dimensions 
+d_tmp = nt_zapline(d_tmp, power_line/EEG.srate); % use zapline
+EEG.data = permute(d_tmp,[2,1]); % change dimensions back
 EEG.preprocessing = [EEG.preprocessing 'Zaplined,'];
 
 %pop_spectopo(EEG)
@@ -46,8 +45,8 @@ EEG.preprocessing = [EEG.preprocessing 'Zaplined,'];
 EEG = pop_reref( EEG, []);
 
 % saving the new dataset
-%EEG = pop_editset(EEG, 'setname', sprintf('Step1_%s',EEG.setname));
-%EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath));
+EEG = pop_editset(EEG, 'setname', sprintf('Step1_%s',EEG.setname));
+EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath, 'preprocessed'));
 
 %% STEP TWO: Selecting channels 
 
@@ -60,19 +59,23 @@ channels_to_reject = {'T8' 'T7'};
 %deleting noisy channels
 EEG = pop_select(EEG, 'nochannel', channels_to_reject);
 EEG.preprocessing = [EEG.preprocessing 'ChannelReject,'];
+
+% save the list of rejected channels
 save([EEG.filepath sprintf('\\%s_channels_to_reject.mat',EEG.setname(7:end))], 'channels_to_reject')
 
 % rereference after removing noisy channels
 if EEG.nbchan ~= 72
-    EEG = pop_reref( EEG, []); %Participants’ averages were then re-referenced to a common average reference. (Rossion & Caharel, 2011)
+    EEG = pop_reref( EEG, []); 
 end
 
 %save file
-%EEG = pop_editset(EEG, 'setname', sprintf('Step2_%s',EEG.setname(7:end)));
-%EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath,'preprocessed'));
+EEG = pop_editset(EEG, 'setname', sprintf('Step2_%s',EEG.setname(7:end)));
+EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath,'preprocessed'));
 %% STEP THREE: Data Cleaning
 
+% plot data to scroll and reject chunks
 eegplot(EEG.data,'command','rej=TMPREJ;','srate',EEG.srate,'eloc_file',EEG.chanlocs,'events',EEG.event);
+
 %save cleaning file
 save([EEG.filepath,sprintf('\\%s_cleaningTimes.mat', EEG.setname(7:end))],'tmprej','rej');
 
@@ -90,7 +93,7 @@ EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath))
 %% STEP FOUR: ICA (o.o)
 
 %%% HighPass FILTER %%% tmp variable
-EEG_tmp = pop_eegfiltnew(EEG, 2, []);   % highpass  
+EEG_tmp = pop_eegfiltnew(EEG, 2, []);   % highpass  2hz to remove slow ocular drifts
 
 % addpath('./amica')
 mkdir(fullfile(EEG.filepath,EEG.setname(7:end),'amica'))
@@ -109,27 +112,26 @@ runamica15(EEG_tmp.data, 'num_chans', EEG_tmp.nbchan,...
 %% STEP FIVE: Apply ICA wights and Component cleaning
 
 
-addpath([fullfile(EEG.filepath,EEG.setname(7:end),'amica')])
+addpath([fullfile(EEG.filepath,'amica')])
 
 
 %load ICA results
-icapath = fullfile(outDir.path,'preprocessed','amica');
 outDir = what('amica');
 
-mod = loadmodout15(icapath);
+% load ICA weights
 mod = loadmodout15(outDir.path);
-
-                
+         
 %apply ICA weights to data
 EEG.icasphere = mod.S;
 EEG.icaweights = mod.W;
+EEG = eeg_checkset(EEG);
 EEG.preprocessing = [EEG.preprocessing 'AMICA,'];
 
 % calculate iclabel classification
 EEG = iclabel(EEG);
 
 pop_selectcomps(EEG);
-
+pop_viewprops(EEG, 0)
 
 pop_eegplot(EEG,0,1,1);
                 
