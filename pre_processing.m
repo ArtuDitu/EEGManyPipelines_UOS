@@ -6,6 +6,7 @@
 cd D:\Dropbox\Projects\EEGManyPipelines % change directory
 addpath(genpath('D:\Dropbox\Projects\EEGManyPipelines')) % add directory with all subfolders to the path
 eeglabpath = fileparts(which('eeglab.m')); % create variable storing a path to eeglab toolbox
+eeglab;
 
 %EEG = pop_loadset(); % load data: select data from your disk
 EEG = pop_loadset('filename', 'EMP01.set', 'filepath','D:\Dropbox\Projects\EEGManyPipelines\eeg_eeglab' ); % load data: specify file names. This can be further improved with sprintf() to loop over different files
@@ -126,6 +127,14 @@ EEG.icasphere = mod.S;
 EEG.icaweights = mod.W;
 EEG = eeg_checkset(EEG);
 EEG.preprocessing = [EEG.preprocessing 'AMICA,'];
+
+%epoch data
+window = [-.2 .6];
+triggers = {1010 1011 1019 1020 1021 1029 1030 1031 1039 1040 1041 1049 1090 1091 1099 1110 1111 1119 1120 1121 1129 1190 1191 1199 2010 2011 2019 2020 2021 2029 2030 2031 2039 2040 2041 2049 2090 2091 2099 2110 2111 2119 2120 2121 2129 2190 2191 2199}; 
+EEG = pop_epoch( EEG,triggers, window, 'epochinfo', 'yes');
+
+% remove baseline
+EEG = pop_rmbase(EEG, [-199 0]);
 
 % calculate iclabel classification
 EEG = iclabel(EEG);
