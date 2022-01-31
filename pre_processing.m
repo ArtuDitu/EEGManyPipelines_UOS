@@ -8,8 +8,8 @@ addpath(genpath('D:\Dropbox\Projects\EEGManyPipelines')) % add directory with al
 eeglabpath = fileparts(which('eeglab.m')); % create variable storing a path to eeglab toolbox
 eeglab;
 
-%EEG = pop_loadset(); % load data: select data from your disk
-EEG = pop_loadset('filename', 'EMP01.set', 'filepath','D:\Dropbox\Projects\EEGManyPipelines\eeg_eeglab' ); % load data: specify file names. This can be further improved with sprintf() to loop over different files
+EEG = pop_loadset(); % load data: select data from your disk
+EEG = pop_loadset('filename', 'EMP01.set', 'filepath','D:\Dropbox\Projects\EEGManyPipelines\eeg_eeglab'); % load data: specify file names. This can be further improved with sprintf() to loop over different files
 
 % parameters
 low_pass = 100;
@@ -40,7 +40,7 @@ d_tmp = nt_zapline(d_tmp, power_line/EEG.srate); % use zapline
 EEG.data = permute(d_tmp,[2,1]); % change dimensions back
 EEG.preprocessing = [EEG.preprocessing 'Zaplined,'];
 
-%pop_spectopo(EEG)
+pop_spectopo(EEG)
 
 % referenca data to average
 EEG = pop_reref( EEG, []);
@@ -77,13 +77,15 @@ EEG = pop_saveset(EEG, 'filename',EEG.setname,'filepath',fullfile(EEG.filepath,'
 % plot data to scroll and reject chunks
 eegplot(EEG.data,'command','rej=TMPREJ;','srate',EEG.srate,'eloc_file',EEG.chanlocs,'events',EEG.event);
 
-%save cleaning file
-save([EEG.filepath,sprintf('\\%s_cleaningTimes.mat', EEG.setname(7:end))],'tmprej','rej');
+
 
 %converts rejections into events
 tmprej = eegplot2event(rej, -1);
 EEG = eeg_eegrej(EEG,tmprej(:,[3 4]));
 EEG.preprocessing = [EEG.preprocessing 'Cleaning,'];
+
+%save cleaning file
+save([EEG.filepath,sprintf('\\%s_cleaningTimes.mat', EEG.setname(7:end))],'tmprej','rej');
 
 % eeg check function after cleaning
 EEG = eeg_checkset(EEG,'makeur');
@@ -113,12 +115,12 @@ runamica15(EEG_tmp.data, 'num_chans', EEG_tmp.nbchan,...
 %% STEP FIVE: Apply ICA wights and Component cleaning
 
 % add paths and create a folder
-%cd D:\Dropbox\Projects\EEGManyPipelines % change directory
-%addpath(genpath('D:\Dropbox\Projects\EEGManyPipelines')) % add directory with all subfolders to the path
-%eeglabpath = fileparts(which('eeglab.m')); % create variable storing a path to eeglab toolbox
-%eeglab;
+cd D:\Dropbox\Projects\EEGManyPipelines % change directory
+addpath(genpath('D:\Dropbox\Projects\EEGManyPipelines')) % add directory with all subfolders to the path
+eeglabpath = fileparts(which('eeglab.m')); % create variable storing a path to eeglab toolbox
+eeglab;
 
-%EEG = pop_loadset(); % load data: select data from your disk
+EEG = pop_loadset(); % load data: select data from your disk
 
 
 addpath([fullfile(EEG.filepath,'amica')])
@@ -146,8 +148,8 @@ EEG = pop_rmbase(EEG, [-199 0]);
 % calculate iclabel classification
 EEG = iclabel(EEG);
 
-pop_selectcomps(EEG);
-pop_viewprops(EEG, 0)
+pop_selectcomps(EEG); % open components to reject
+pop_viewprops(EEG, 0); % open IC label
 
 pop_eegplot(EEG,0,1,1);
                 
@@ -170,7 +172,7 @@ load('preprocessed_channels.mat');
 EEG= pop_interp(EEG, full_channels_locs,'spherical');
 EEG.preprocessing = [EEG.preprocessing 'channelInterpol'];
 
-%eegplot(EEG.data,'command','rej=TMPREJ;','srate',EEG.srate,'eloc_file',EEG.chanlocs,'events',EEG.event);
+eegplot(EEG.data,'command','rej=TMPREJ;','srate',EEG.srate,'eloc_file',EEG.chanlocs,'events',EEG.event);
 %tmprej = eegplot2event(rej, -1);
 %EEG = eeg_eegrej(EEG,tmprej(:,[3 4]));
 %EEG = eeg_checkset(EEG,'makeur');
