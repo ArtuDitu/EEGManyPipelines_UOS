@@ -16,7 +16,8 @@ CURRENTSTUDY = 1;
 EEG = ALLEEG; 
 CURRENTSET = [1:length(EEG)];
 
-
+%download chanlocs_ced.txt and add it to BIDS folder
+eloc=readlocs('chanlocs_ced.txt', 'filetype', 'chanedit'); % load channel locations
 % parameters
 low_pass = 100;
 high_pass = .1;
@@ -26,7 +27,7 @@ power_line = 50;
 for i=1:length(EEG)
     EEG(i).preprocessing = []; % add field to keep track of changes
     EEG(i)=eeg_checkset(EEG(i), 'loaddata'); %load data for each dataset
-    
+    EEG(i).chanlocs=eloc; %add chanlocations to each dataset
     %%% DOWNSAMPLING %%%
     %EEG = pop_resample(EEG, 512);
     %EEG.preprocessing = [EEG.preprocessing 'Resampled,'];
@@ -49,7 +50,7 @@ for i=1:length(EEG)
     EEG(i).data = permute(d_tmp,[2,1]); % change dimensions back
     EEG(i).preprocessing = [EEG(i).preprocessing 'Zaplined,'];
 
-    pop_spectopo(EEG(i))
+    %pop_spectopo(EEG(i))
 
     % referenc data to average
     EEG(i) = pop_reref( EEG(i), []);
