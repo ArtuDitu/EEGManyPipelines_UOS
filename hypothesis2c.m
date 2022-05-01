@@ -46,12 +46,23 @@ for eeg_file = 1:size(list_of_files)
     EEG_old = pop_rmbase(EEG_old, [-199 0]);
     
     %remove veog and heog
-    EEG_new.data = EEG_new.data(1:70,:,:);
-    EEG_old.data = EEG_old.data(1:70,:,:);
+    EEG_new=pop_select(EEG_new, 'nochannel', {'VEOG', 'HEOG'});
+    EEG_old=pop_select(EEG_old, 'nochannel', {'VEOG', 'HEOG'});
+    
+    %find out indices of posterior channels
+    chanlist=[];
+    for i=1:70
+        chanlist=[chanlist, {EEG_new.chanlocs(i).labels}];
+    end
+    posterior_channels={'CPz', 'POz', 'Pz'};
+    chan_Index=[];
+    for j=1:3
+        chan_Index = [chan_Index, find(strcmp(chanlist,posterior_channels(j)))];
+    end
     
     %select posterior channels
-    EEG_new.data = squeeze(mean(EEG_new.data(posterior_channels,:,:),1));
-    EEG_old.data = squeeze(mean(EEG_old.data(posterior_channels,:,:),1));
+    EEG_new.data = squeeze(mean(EEG_new.data(chan_Index,:,:),1));
+    EEG_old.data = squeeze(mean(EEG_old.data(chan_Index,:,:),1));
     
     %calculate channel power for both conditions
     chanpowr_new = (2*abs(fft(EEG_new.data(257:359,:),[],1))/pnts).^2; % EEG.data here is our 300-500 ms vector ad EEG.pnts is amount of data points 

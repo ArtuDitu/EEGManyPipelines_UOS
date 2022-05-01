@@ -16,7 +16,8 @@ eeglab; % start toolbox
 trigger_new = {1010 1011 1019 1020 1021 1029 1030 1031 1039 1040 1041 1049 1090 1091 1099 2010 2011 2019 2020 2021 2029 2030 2031 2039 2040 2041 2049 2090 2091 2099};
 trigger_old = {1110 1111 1119 1120 1121 1129 1190 1191 1199 2110 2111 2119 2120 2121 2129 2190 2191 2199};
 window_epoch = [-.2 .8]; 
-fronto_channels=[4, 38, 39, 11, 47, 46]; %channesl i want to investigate
+fronto_channels=[4, 38, 39, 11, 47, 46];
+%fronto_channels=['F1', 'Fz', 'F2', 'FC1', 'FCz', 'FC2']; %channesl i want to investigate
 pnts = 103; % number of timepoints btw 300 and 500ms
 
 %create variable that will save calculated power for all participants
@@ -46,12 +47,23 @@ for eeg_file = 1:size(list_of_files)
     EEG_old = pop_rmbase(EEG_old, [-199 0]);
     
     %remove veog and heog
-    EEG_new.data = EEG_new.data(1:70,:,:);
-    EEG_old.data = EEG_old.data(1:70,:,:);
+    EEG_new=pop_select(EEG_new, 'nochannel', {'VEOG', 'HEOG'});
+    EEG_old=pop_select(EEG_old, 'nochannel', {'VEOG', 'HEOG'});
     
+    %find out indices of fronto channels
+    chanlist=[];
+    for i=1:70
+        chanlist=[chanlist, {EEG_new.chanlocs(i).labels}];
+    end
+    fronto_channels={'F1', 'Fz', 'F2', 'FC1', 'FCz', 'FC2'};
+    chan_Index=[];
+    for j=1:6
+        chan_Index = [chan_Index, find(strcmp(chanlist,fronto_channels(j)))];
+    end
     
-    EEG_new.data = squeeze(mean(EEG_new.data(fronto_channels,:,:),1));
-    EEG_old.data = squeeze(mean(EEG_old.data(fronto_channels,:,:),1));
+    %select fronto channels
+    EEG_new.data = squeeze(mean(EEG_new.data(chan_Index,:,:),1));
+    EEG_old.data = squeeze(mean(EEG_old.data(chan_Index,:,:),1));
     
     %calculate channel power for both conditions
     chanpowr_new = (2*abs(fft(EEG_new.data(257:359,:),[],1))/pnts).^2; % EEG.data here is our 300-500 ms vector ad EEG.pnts is amount of data points 

@@ -1,13 +1,18 @@
+addpath D:\Dropbox\fieldtrip-20220426
+ft_defaults
 addpath(genpath('D:\Dropbox\MATLAB_Tools'))
 %change the path to the folder with scripts and add the folder to the path
-cd D:\Dropbox\Projects\EEGManyPipelines\Data\final
-addpath(genpath('D:\Dropbox\Projects\EEGManyPipelines\Data'))
+cd D:\Dropbox\Projects\EEGManyPipelines\Data\derivatives\
+addpath(genpath('D:\Dropbox\Projects\EEGManyPipelines'))
+
+
+
 
 
 list_of_files = dir('**/final*');
 
 
-for eeg_file = 1:size(list_of_files)
+for eeg_file = 28:size(list_of_files)
     %load file
     cd D:\Dropbox\Projects\EEGManyPipelines\Data\derivatives
     EEG = pop_loadset(list_of_files(eeg_file).name);
