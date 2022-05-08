@@ -1,3 +1,8 @@
+%Matlab version: R2020a
+% eeglab version: 2020_0
+% TFCE toolbox: https://github.com/Mensen/ept_TFCE-matlab
+
+
 %Hypothesis 1
 %There is an effect of scence category on the amplitude of the N1
 %component.
