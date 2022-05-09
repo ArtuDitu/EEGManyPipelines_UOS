@@ -1,3 +1,6 @@
+%Matlab version: R2020a
+% eeglab version: 2020_0
+
 %Hypothesis 2c
 %There are effects of image novelty (i.e., between images shown for the first time/new
 %vs. repeated/old images) within the time-range from 300–500 ms on alpha power at posterior channels..
@@ -85,5 +88,8 @@ end
 
 
 %% STEP 2
-% run ttest
-[h,p,ci,stats]=ttest(power_new_all, power_old_all);
+% run non parametric
+[p,h,stats] = signrank(power_new_all, power_old_all)
+
+%run parametric
+%[h,p,ci,stats]=ttest(power_new_all, power_old_all);
