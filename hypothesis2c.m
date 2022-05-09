@@ -34,7 +34,7 @@ list_of_files = dir('**/final*'); %save all cleaned data sets in one file
 % which contains only repeated scenery, epoch [-200,800]
 for eeg_file = 1:size(list_of_files)
     %load file
-    cd /net/store/nbp/projects/joint_error/EEG_Belt/EEGManyPipelines/eeg_BIDS/derivatives
+    %cd /net/store/nbp/projects/joint_error/EEG_Belt/EEGManyPipelines/eeg_BIDS/derivatives
     EEG = pop_loadset(list_of_files(eeg_file).name);
     %epoch data
     EEG_new = pop_epoch( EEG, trigger_new, window_epoch, 'epochinfo', 'yes');
