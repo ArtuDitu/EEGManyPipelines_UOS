@@ -1,3 +1,7 @@
+%Matlab version: R2020a
+% eeglab version: 2020_0
+
+
 %Hypothesis 2b
 %There are effects of image novelty (i.e., between images shown for the first time/new
 %vs. repeated/old images) within the time-range from 300–500 ms on theta power at fronto-central channels.
@@ -85,5 +89,8 @@ end
 
 
 %% STEP 2
-% run ttest
-[h,p,ci,stats]=ttest(power_new_all, power_old_all);
+% run non parametric
+[p,h,stats] = signrank(power_new_all, power_old_all)
+
+% paremetric
+%[h,p,ci,stats]=ttest(power_new_all, power_old_all);
