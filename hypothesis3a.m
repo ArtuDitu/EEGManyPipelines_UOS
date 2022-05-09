@@ -18,8 +18,8 @@ eeglab; % start toolbox
 addpath(genpath('/net/store/nbp/projects/joint_error/EEG_Belt/TFCE/ept_TFCE-matlab-master'));
 %add triggers
 % 3rd digit 1 and 2
-trigger_hit = {1010 1011 1019 1110 1111 1119 2010 2011 2019  2110 2111 2119};
-trigger_miss = {1020 1021 1029 1120 1121 1129 2020 2021 2029 2120 2121 2129};
+trigger_hit = {1110 1111 1119 2110 2111 2119};
+trigger_miss = {1120 1121 1129 2120 2121 2129};
 window_epoch = [-.2 .8]; 
 
 %load data
