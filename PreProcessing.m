@@ -1,4 +1,12 @@
+
+
 %% BIDS EXTENSION FOR PRE PROCESSING SCRIPT
+%Matlab version: R2020a
+% eeglab version: 2020_0
+% AMICA12 
+% zapline: https://www.sciencedirect.com/science/article/pii/S1053811919309474
+
+
 
 %% STEP ONE: Load data + Filtering (high-low), Resampling
 
