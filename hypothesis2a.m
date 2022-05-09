@@ -1,3 +1,6 @@
+%Matlab version: R2020a
+% eeglab version: 2020_0
+
 %Hypothesis 2
 %There are effects of image novelty within the time-range from 300–500 ms ...
 %a.on EEG voltage at fronto-central channels.
@@ -74,7 +77,11 @@ EEG_old_all.data = EEG_old_all.data(:,257:359,:)
 average_over_participant_new_all= squeeze(mean(mean(EEG_new_all.data, 1), 2));
 average_over_participant_old_all= squeeze(mean(mean(EEG_old_all.data, 1), 2));
 
-[h,p, ci, stats] = ttest(average_over_participant_new_all,average_over_participant_old_all)
+% non parametric
+[p,h,stats] = signrank(average_over_participant_new_all,average_over_participant_old_all)
+
+% parametric
+%[h,p, ci, stats] = ttest(average_over_participant_new_all,average_over_participant_old_all)
 % h = 1 // p=0.0034 // ci= -0.4127, -0.0894 // stats =   tstat: -3.1639, df: 32, sd: 0.4559
 % t(32) = -3.1639, p=0.0034
 
