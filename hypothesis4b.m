@@ -1,3 +1,6 @@
+%Matlab version: R2020a
+% eeglab version: 2020_0
+
 %addpath D:\Dropbox\fieldtrip-20220426
 %ft_defaults
 %addpath(genpath('D:\Dropbox\MATLAB_Tools'))

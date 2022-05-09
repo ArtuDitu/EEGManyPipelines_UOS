@@ -1,3 +1,7 @@
+%Matlab version: R2020a
+% eeglab version: 2020_0
+% TFCE toolbox: https://github.com/Mensen/ept_TFCE-matlab
+
 %Hypothesis 4a
 %There are effects of subsequent memory (i.e., a difference between images that will
 %be successfully remembered vs. forgotten on a subsequent repetition) ...
