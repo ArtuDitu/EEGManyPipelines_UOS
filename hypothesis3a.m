@@ -1,3 +1,7 @@
+%Matlab version: R2020a
+% eeglab version: 2020_0
+% TFCE toolbox: https://github.com/Mensen/ept_TFCE-matlab
+
 %Hypothesis 3a
 %There are effects of successful recognition of old images (i.e., a difference between
 %old images correctly recognized as old [hits] vs. old images incorrectly judged as new
