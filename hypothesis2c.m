@@ -67,8 +67,12 @@ for eeg_file = 1:size(list_of_files)
     EEG_new.data = squeeze(mean(EEG_new.data(chan_Index,:,:),1));
     EEG_old.data = squeeze(mean(EEG_old.data(chan_Index,:,:),1));
     
+    n=.201*EEG_new.srate;
+
+    window = hann(n);
+    
     %calculate channel power for both conditions
-    chanpowr_new = (2*abs(fft(EEG_new.data(257:359,:),[],1))/pnts).^2; % EEG.data here is our 300-500 ms vector ad EEG.pnts is amount of data points 
+    chanpowr_new = (2*abs(fft(EEG_new.data(257:359,:).*window,[],1))/pnts).^2; % EEG.data here is our 300-500 ms vector ad EEG.pnts is amount of data points 
     chanpowr_new = mean(chanpowr_new,2); %average over trials 
 
     %chanpowr_new_all=cat(2,chanpowr_new_all,chanpowr_new); 
@@ -76,7 +80,7 @@ for eeg_file = 1:size(list_of_files)
     power_new =mean(chanpowr_new(8:12)); 
     power_new_all=cat(2,power_new_all,power_new); 
     
-    chanpowr_old = (2*abs(fft(EEG_old.data(257:359,:),[],1))/pnts).^2; % EEG.data here is our 300-500 ms vector ad EEG.pnts is amount of data points - careful, the parentheses in these order are crucial
+    chanpowr_old = (2*abs(fft(EEG_old.data(257:359,:).*window,[],1))/pnts).^2; % EEG.data here is our 300-500 ms vector ad EEG.pnts is amount of data points - careful, the parentheses in these order are crucial
     chanpowr_old = mean(chanpowr_old,2); %average over trials 
 
     %chanpowr_old_all=cat(2,chanpowr_old_all,chanpowr_old); 
